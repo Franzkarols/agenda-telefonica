@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" media="screen and (min-width: 0px)" href="small.css">
+    <link rel="stylesheet" type="text/css" media="screen and (min-width: 1000px)" href="medium.css">
+    <link rel="stylesheet" type="text/css" media="screen and (min-width: 1350px)" href="large.css">
+</head>
+
+<body>
+    <div id="app">
+        <the-mask mask="###.###.###-##" />
+
+        <h1 class="jumbotorn">Agenda telefonica</h1>
+        <div class="col-2">
+            <label>Nome</label>
+            <input v-model="contact.name" placeholder="Digite seu nome aqui">
+            <label>Email</label>
+            <input type="email" v-model="contact.email" placeholder="Digite seu email aqui">
+            <label>Telefone</label>
+            <input type="telephone" v-model="contact.telephone" placeholder="Digite seu telefone aqui" onkeypress="mask(this, mphone);" onblur="mask(this, mphone);" />
+
+            <button class="mt-3 mb-3 btn btn-primary" @click="add()">Adicionar</button>
+
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in list">
+                    <th scope="row">{{ item.id }}</th>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.email }}</td>
+                    <td>{{ item.telephone }}</td>
+                    <td>
+                        <button @click="edit(item)" class="btn btn-info">Editar</button>
+                        <button @click="remove(item)" class="btn btn-danger">Excluir</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            message: 'Agenda Telefônica',
+            contact: {
+                id: 0,
+                name: null,
+                email: null,
+                telephone: null
+            },
+            index: null,
+            list: []
+        },
+        mounted() {
+            const contacts = JSON.parse(localStorage.getItem('contacts'))
+            this.list = contacts ? contacts : []
+        },
+        methods: {
+            add() {
+                if (this.contact.id === 0) {
+                    this.contact.id = this.list.length + 1
+                    this.list.push(this.contact)
+
+                } else {
+                    this.list[this.index] = this.contact
+                }
+                localStorage.setItem('contacts', JSON.stringify(this.list))
+                this.contact = {
+                    id: 0,
+                    name: null,
+                    email: null,
+                    telephone: null
+                }
+            },
+
+            remove(item) {
+                const idx = this.list.indexOf(item)
+                this.list.splice(idx, 1)
+                localStorage.setItem('contacts', JSON.stringify(this.list))
+            },
+
+            edit(item) {
+                this.index = this.list.indexOf(item)
+                this.contact = Object.assign({}, item);
+                localStorage.setItem('contacts', JSON.stringify(this.list))
+            }
+        }
+
+    })
+</script>
+
+<script>
+    function mask(o, f) {
+
+        setTimeout(function() {
+
+            let v = mphone(o.value);
+            if (v != o.value) {
+
+                o.value = v;
+            }
+        }, 1);
+    }
+
+    function mphone(v) {
+
+        let r = v.replace(/\D/g, "");
+        r = r.replace(/^0/, "");
+
+        if (r.length > 12) {
+
+            r = r.replace(/^(\d\d)(\d\d)(\d{5})(\d{4}).*/, "+$1 ($2) $3-$4");
+        } else if (r.length > 7) {
+
+            r = r.replace(/^(\d\d)(\d\d)(\d{4})(\d{0,4}).*/, "+$1 ($2) $3-$4");
+        } else if (r.length > 4) {
+
+            r = r.replace(/^(\d\d)(\d\d)(\d{0,5})/, "+$1 ($2) $3");
+        } else {
+
+            r = r.replace(/^(\d*)/, "($1");
+        }
+
+        return r;
+    }
+</script>
